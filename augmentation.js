@@ -1,34 +1,63 @@
+// helpers
+
+function updateArtifact(curr,fn,prev) {
+    return (artifact) => {
+        artifact[curr] = fn(artifact[prev]);
+        return artifact;
+    };
+}
+
+function getValue(property) {
+    return (obj) => {
+        return obj[property];
+    };
+}
+
+// augmentation functions
+
 function augment(select, extract, fetch, build, inject) {
     inject(build(fetch(extract(select()))));
 }
 
+// selection functions
+
+function gSelect(parser) {
+    return () => {
+        return parser().map((element) => { return {"selected": element}; });
+    };
+}
+
 // extraction functions
 
+// :: (HtmlNode -> [String]) -> ([{"selected": HtmlNode}] -> [{"selected": HtmlNode, "extracted": [String]}])
 function gExtract(parser) {
-    return function (selectedHTMLNodes) {
-        return selectedHTMLNodes.map(parser);
+    return function (artifacts) {
+        return artifacts.map(updateArtifact("extracted",parser,"selected"));
     };
 }
 
 // fetching functions
 
+// ::
 function gFetch(baseQuery, parser) {
-    return function(extractedElements) {
-        return extractedElements.map(query(baseQuery)).map(parser);
+    return function(artifacts) {
+        return artifacts
+            .map(updateArtifact("fetched",query(baseQuery),"extracted"))
+            .map(updateArtifact("fetched",parser,"fetched"));
     };
 }
 
 function query(base) {
-    return function(args) {
+    return function(data) {
         var xhr = new XMLHttpRequest();
-        xhr.open('GET', buildURI(buildQuery(base, args)), false);
+        xhr.open('GET', buildURI(buildQuery(base, data)), false);
         xhr.send();
         return JSON.parse(xhr.responseText);
     };
 }
 
 function buildURI(query) {
-    return encodeURI("https://dbpedia.org/sparql?query=" + query + "&format=json");
+    return "https://dbpedia.org/sparql?query=" + escape(query) + "&format=json";
 }
 
 function buildQuery(base, args) {
@@ -49,32 +78,34 @@ function buildQueryR(res, [carBase, ...cdrBase], [carArgs, ...cdrArgs]) {
 // building functions
 
 function gBuildNNN(template) {
-    return function(gottenDictionaries) {
-        return gottenDictionaries.map(fulfillHtml(template));
+    return function(artifacts) {
+        return artifacts.map(updateArtifact("built",fulfillHtml(template),"fetched"));
     };
 }
 
 function gBuildNN1(template1,template2) {
-    return function(gottenDictionaries) {
-        var htmls = gottenDictionaries.map(fulfillHtml(template1));
-        return fulfillHtml(template2)({ "data": nodeToString(fold(htmls)) });
+    return function(artifacts) {
+        var tmpArtifacts = gBuildNNN(template1)(artifacts);
+        return fulfillHtml(template2)({ "data": nodeToString(fold(tmpArtifacts.map(getValue("built")))) });
     };
 }
 
 function gBuildNMN(template1,template2) {
-    return function(gottenDictionariess) {
-        var htmlss = gottenDictionariess.map(
-            (gottenDictionaries) => { return gottenDictionaries.map( fulfillHtml(template1) ); });
-        return htmlss.map((htmls) => {
-            return fulfillHtml(template2)({ "data": nodeToString(fold(htmls)) });
+    return function(artifacts) {
+        var tmpArtifacts = artifacts.map((artifact) => {
+            artifact.built = artifact.fetched.map(fulfillHtml(template1));
+            return artifact; });
+        return tmpArtifacts.map((artifact) => {
+            artifact.built = fulfillHtml(template2)({ "data": nodeToString(fold(artifact.built)) });
+            return artifact;
         });
     };
 }
 
 function gBuildNM1(template1,template2,template3) {
-    return function(gottenDictionariess) {
-        var htmls = gBuildNMN(template1,template2)(gottenDictionariess);
-        return fulfillHtml(template3)({ "data": nodeToString(fold(htmls)) });
+    return function(artifacts) {
+        var tmpArtifacts = gBuildNMN(template1,template2)(artifacts);
+        return fulfillHtml(template3)({ "data": nodeToString(fold(tmpArtifacts.map(getValue("built")))) });
     };
 }
 
@@ -85,7 +116,7 @@ function nodeToString(item) {
 }
 
 function fulfillHtml(template) {
-    return (data) => { return htmlFromString(fulfillTemplate(template, data)); }
+    return (data) => { return htmlFromString(fulfillTemplate(template, data)); };
 }
 
 function fulfillTemplate(template, data) {
@@ -113,9 +144,9 @@ function htmlFromString(string) {
 // injection functions
 
 function gInjectN(nodeGetter, injection) {
-    return function(builtElements) {
-        builtElements.forEach(b => {
-            injection(nodeGetter(), b.getElementsByTagName("body")[0].firstChild);
+    return function(artifacts) {
+        artifacts.forEach((artifact) => {
+            injection(nodeGetter(artifact), artifact.built.getElementsByTagName("body")[0].firstChild);
         });
     };
 }
