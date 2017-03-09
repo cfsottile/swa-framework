@@ -1,16 +1,16 @@
-var select = () => {
+var select = gSelect(() => {
     // in order to get a proper array, I have to do this
     var elements = document.getElementById("filming_locations_content").children;
     var arr = [].slice.call(elements);
     arr.splice(0, 1);
     return arr;
-};
-
-var extract = gExtract((location_container) => {
-    return [location_container.children[0].children[0].innerHTML.split(',')[0]];
 });
 
-var get = gGet(
+var extract = gExtract((locationContainer) => {
+    return [locationContainer.children[0].children[0].innerHTML.split(',')[0]];
+});
+
+var fetch = gFetch(
     [
       "prefix dbpedia-owl: <http://dbpedia.org/ontology/>" + "\n" +
         "prefix dbpprop: <http://dbpedia.org/property/>" + "\n" +
@@ -42,7 +42,7 @@ var inject = gInject1(
 augment(
     select,
     extract,
-    get,
+    fetch,
     build,
     inject
 );

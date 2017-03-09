@@ -1,12 +1,12 @@
-var select = () => {
+var select = gSelect(() => {
     return [document.getElementById("firstHeading")];
-};
+});
 
 var extract = gExtract((node) => {
     return [node.innerHTML];
 });
 
-var get = gGet(
+var fetch = gFetch(
     [
         "select ?thatPage ?appearsAs ?ofWPPage where {\n" +
         "?thatPage <http://xmlns.com/foaf/0.1/isPrimaryTopicOf> <http://en.wikipedia.org/wiki/", ">.\n" +
@@ -28,14 +28,14 @@ var build = gBuildNM1(
     '<h2><span class="mw-headline" id="Semantic-related">Semantic related</span>{{data}}',
     '{{data}}');
 
-var inject = gInjectNto1(
+var inject = gInject1(
   () => { return document.evaluate("//*[@id=\"mw-content-text\"]/p[1]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; },
   (node, built) => { node.appendChild(built); });
 
 augment(
     select,
     extract,
-    get,
+    fetch,
     build,
     inject
 );
