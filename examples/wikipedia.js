@@ -11,7 +11,7 @@ var fetch = gFetch(
         "select ?thatPage ?appearsAs ?ofWPPage where {\n" +
         "?thatPage <http://xmlns.com/foaf/0.1/isPrimaryTopicOf> <http://en.wikipedia.org/wiki/", ">.\n" +
         "?of <http://xmlns.com/foaf/0.1/isPrimaryTopicOf> ?ofWPPage.\n" +
-        "?of ?appearsAs ?thatPage.}"
+        "?of ?appearsAs ?thatPage.} limit 100"
     ],
     (data) => {
         return data.results.bindings.map((result) => {
@@ -24,8 +24,8 @@ var fetch = gFetch(
 );
 
 var build = gBuildNM1(
-    '<ul><li>{{resource}} - {{as}}</li></ul>',
-    '<h2><span class="mw-headline" id="Semantic-related">Semantic related</span>{{data}}',
+    '<li style="font-size: small;">{{resource}} - {{as}}</li>',
+    '<h2><span class="mw-headline" id="Semantic-related">Semantic related</span><ul>{{data}}</ul>',
     '{{data}}');
 
 var inject = gInject1(

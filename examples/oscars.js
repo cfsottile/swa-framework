@@ -21,16 +21,17 @@ var fetch = gFetch(
     }
 );
 
-var build = gBuildNNN('<span>🏆 x {{amount}}</span>');
+var build = gBuildNNN('<span><img src="http://25.media.tumblr.com/9e676733a01c7a0866957268e89320e5/tumblr_mivcm21GkB1r7e16io1_250.gif" width="10px"> x {{amount}}</span>');
 
 var inject = gInjectN(
     (artifact) => {
         return artifact.selected;
     }, (node, html) => {
-        if (Array.from(html.innerHTML)[4] != 0) {
+        if (Array.from(html.innerHTML)[122] != 0) {
             node.children[1].children[0].appendChild(html);
         }
     }
 );
+
 
 augment(select,extract,fetch,build,inject);
