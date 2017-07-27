@@ -57,7 +57,7 @@ function query(base) {
 }
 
 function buildURI(query) {
-    return "https://dbpedia.org/sparql?query=" + escape(query) + "&format=json";
+    return "https://dbpedia.org/sparql?query=" + encodeURIComponent(query) + "&format=json";
 }
 
 function buildQuery(base, args) {

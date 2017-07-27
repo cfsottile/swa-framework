@@ -57,7 +57,7 @@ function query(base) {
 }
 
 function buildURI(query) {
-    return "https://dbpedia.org/sparql?query=" + escape(query) + "&format=json";
+    return "https://dbpedia.org/sparql?query=" + encodeURIComponent(query) + "&format=json";
 }
 
 function buildQuery(base, args) {
@@ -156,15 +156,19 @@ function gInject1(nodeGetter, injection) {
         injection(nodeGetter(), builtElement.getElementsByTagName("body")[0].firstChild);
     };
 }
-var select = gSelect(() => {
+function getElementByXpath (path) {
+    return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+}
+
+var select1 = gSelect(() => {
     return [document.getElementById("firstHeading")];
 });
 
-var extract = gExtract((node) => {
+var extract1 = gExtract((node) => {
     return [node.innerHTML];
 });
 
-var fetch = gFetch(
+var fetch1 = gFetch(
     [
         "select ?thatPage ?appearsAs ?ofWPPage where {\n" +
         "?thatPage <http://xmlns.com/foaf/0.1/isPrimaryTopicOf> <http://en.wikipedia.org/wiki/", ">.\n" +
@@ -181,19 +185,83 @@ var fetch = gFetch(
     }
 );
 
-var build = gBuildNM1(
-    '<li style="font-size: small;">{{resource}} - {{as}}</li>',
-    '<h2><span class="mw-headline" id="Semantic-related">Semantic related</span><ul>{{data}}</ul>',
+var build1 = gBuildNM1(
+    '<li><a href="{{resource}}">{{resource}}</a> – <a href="{{as}}">{{as}}</a></li>',
+    '<div><h2><span class="mw-headline" id="Semantic-related-resources">Semantic related resources</span></h2><h4>Resource – Semantic relation</h4><ul>{{data}}</ul></div>',
     '{{data}}');
 
-var inject = gInject1(
+var inject1 = gInject1(
   () => { return document.evaluate("//*[@id=\"mw-content-text\"]/p[1]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; },
   (node, built) => { node.appendChild(built); });
 
-augment(
-    select,
-    extract,
-    fetch,
-    build,
-    inject
-);
+var select2 = gSelect(() => {
+    var ul = Array.from(getElementByXpath('//*[@id="mw-content-text"]/p[1]/div/div/ul/div').children);
+    // return [].concat.apply([],ul.map((li) => { return Array.from(li.children) }));
+    return ul.map((li) => { return li.children[0]; });
+});
+
+var extract2 = gExtract((node) => {
+    return [node.innerHTML];
+});
+
+var fetch2 = gFetch([
+    "select distinct ?o where {\
+    ?s <http://xmlns.com/foaf/0.1/isPrimaryTopicOf> <" , ">.\
+    ?s <http://www.w3.org/2000/01/rdf-schema#label> ?o.\
+    filter(langMatches(lang(?o),\"EN\"))}"
+],(data) => {
+    if (data.results.bindings[0] !== undefined) {
+        return { "data": data.results.bindings[0].o.value };
+    } else {
+        return { "data": "" };
+    }
+});
+
+var build2 = gBuildNNN('<span>{{data}}</span>');
+
+var inject2 = gInjectN((artifact) => {
+    return artifact.selected;
+},(node,built) => {
+    if (built.innerHTML !== "") {
+        node.innerHTML = "";
+        node.appendChild(built);
+    }
+});
+
+var select3 = gSelect(() => {
+    var ul = Array.from(getElementByXpath('//*[@id="mw-content-text"]/p[1]/div/div/ul/div').children);
+    // return [].concat.apply([],ul.map((li) => { return Array.from(li.children) }));
+    return ul.map((li) => { return li.children[1]; });
+});
+
+var extract3 = gExtract((node) => {
+    return [node.innerHTML];
+});
+
+var fetch3 = gFetch([
+    "select distinct ?o where {\
+    <" , "> <http://www.w3.org/2000/01/rdf-schema#label> ?o.}"
+],(data) => {
+    if (data.results.bindings[0] !== undefined) {
+        return { "data": data.results.bindings[0].o.value };
+    } else {
+        return { "data": "" };
+    }
+
+});
+
+var build3 = gBuildNNN('<span>{{data}}</span>');
+
+var inject3 = gInjectN((artifact) => {
+    return artifact.selected;
+},(node,built) => {
+    if (built.innerHTML !== "") {
+        // node.innerHTML = "";
+        // node.appendChild(built);
+        node.innerHTML += " (" + built.innerHTML + ")";
+    }
+});
+
+augment(select1,extract1,fetch1,build1,inject1);
+augment(select2,extract2,fetch2,build2,inject2);
+augment(select3,extract3,fetch3,build3,inject3);
