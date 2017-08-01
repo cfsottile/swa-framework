@@ -7,16 +7,15 @@ var select = gSelect(() => {
 });
 
 var extract = gExtract((locationContainer) => {
-    return [locationContainer.children[0].children[0].innerHTML.split(',')[0]];
+    return {"location": locationContainer.children[0].children[0].innerHTML.split(',')[0]};
 });
 
 var fetch = gFetch(
-    [
-      "prefix dbpedia-owl: <http://dbpedia.org/ontology/>" + "\n" +
-        "prefix dbpprop: <http://dbpedia.org/property/>" + "\n" +
-        "select ?o where { ?s dbpprop:name \"",
-      "\"@en ." + "\n" + "?s dbpedia-owl:thumbnail ?o }"
-    ],
+      "prefix dbpedia-owl: <http://dbpedia.org/ontology/>\n" +
+      "prefix dbpprop: <http://dbpedia.org/property/>\n" +
+      "select ?o where { ?s dbpprop:name \"{{location}}\"@en.\n" +
+      "?s dbpedia-owl:thumbnail ?o }"
+    ,
     (data) => {
         var results = {};
         if (data.results.bindings.length > 0) {
@@ -27,16 +26,16 @@ var fetch = gFetch(
 );
 
 var build = gBuildNN1(
-  '<img id="itemTemplate" src={{thumbnail}}>',
-  '<marquee id="semantic_augmented_image_container" class="article">{{data}}</marquee>');
+    '<img id="itemTemplate" src={{thumbnail}}>',
+    '<marquee id="semantic_augmented_image_container" class="article">{{data}}</marquee>');
 
 var inject = gInject1(
-  () => {
-    return document.getElementById("main");
-  },
-  (node, built) => {
-    node.insertBefore(built, document.getElementById("see_also"));
-  }
+    () => {
+        return document.getElementById("main");
+    },
+    (node, built) => {
+        node.insertBefore(built, document.getElementById("see_also"));
+    }
 );
 
 augment(

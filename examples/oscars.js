@@ -7,16 +7,15 @@ var select = gSelect(() => {
 });
 
 var extract = gExtract((node) => {
-    return [node.children[1].children[0].children[0].innerHTML];
+    return {"name": node.children[1].children[0].children[0].innerHTML};
 });
 
 var fetch = gFetch(
-    [
-        "select count(?academyAward) as ?amount where {\n" +
-        "?actor <http://www.w3.org/2000/01/rdf-schema#label> \"", "\"@en.\n" +
+    "select count(?academyAward) as ?amount where {\n" +
+        "?actor <http://www.w3.org/2000/01/rdf-schema#label> \"{{name}}\"@en.\n" +
         "?academyAward <http://www.w3.org/2004/02/skos/core#broader> <http://dbpedia.org/resource/Category:Academy_Award_winners>.\n" +
         "?actor <http://purl.org/dc/terms/subject> ?academyAward.}"
-    ], (data) => {
+    , (data) => {
         return {"amount": data.results.bindings[0].amount.value};
     }
 );

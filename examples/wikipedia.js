@@ -7,16 +7,15 @@ var select1 = gSelect(() => {
 });
 
 var extract1 = gExtract((node) => {
-    return [node.innerHTML];
+    return {"wikiPage": node.innerHTML};
 });
 
 var fetch1 = gFetch(
-    [
-        "select ?thatPage ?appearsAs ?ofWPPage where {\n" +
-        "?thatPage <http://xmlns.com/foaf/0.1/isPrimaryTopicOf> <http://en.wikipedia.org/wiki/", ">.\n" +
+    "select ?thatPage ?appearsAs ?ofWPPage where {\n" +
+        "?thatPage <http://xmlns.com/foaf/0.1/isPrimaryTopicOf> <http://en.wikipedia.org/wiki/{{wikiPage}}>.\n" +
         "?of <http://xmlns.com/foaf/0.1/isPrimaryTopicOf> ?ofWPPage.\n" +
         "?of ?appearsAs ?thatPage.} limit 100"
-    ],
+    ,
     (data) => {
         return data.results.bindings.map((result) => {
             return {
