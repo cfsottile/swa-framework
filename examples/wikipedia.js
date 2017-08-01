@@ -41,12 +41,12 @@ var select2 = gSelect(() => {
 });
 
 var extract2 = gExtract((node) => {
-    return [node.innerHTML];
+    return {"wikiPage": node.innerHTML};
 });
 
 var fetch2 = gFetch([
     "select distinct ?o where {\
-    ?s <http://xmlns.com/foaf/0.1/isPrimaryTopicOf> <" , ">.\
+    ?s <http://xmlns.com/foaf/0.1/isPrimaryTopicOf> <{{wikiPage}}>.\
     ?s <http://www.w3.org/2000/01/rdf-schema#label> ?o.\
     filter(langMatches(lang(?o),\"EN\"))}"
 ],(data) => {
@@ -75,12 +75,12 @@ var select3 = gSelect(() => {
 });
 
 var extract3 = gExtract((node) => {
-    return [node.innerHTML];
+    return {"label": node.innerHTML};
 });
 
 var fetch3 = gFetch([
     "select distinct ?o where {\
-    <" , "> <http://www.w3.org/2000/01/rdf-schema#label> ?o.}"
+    <{{label}}> <http://www.w3.org/2000/01/rdf-schema#label> ?o.}"
 ],(data) => {
     if (data.results.bindings[0] !== undefined) {
         return { "data": data.results.bindings[0].o.value };

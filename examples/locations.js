@@ -13,7 +13,8 @@ var extract = gExtract((locationContainer) => {
 var fetch = gFetch(
       "prefix dbpedia-owl: <http://dbpedia.org/ontology/>\n" +
       "prefix dbpprop: <http://dbpedia.org/property/>\n" +
-      "select ?o where { ?s dbpprop:name \"{{location}}\"@en.\n" +
+      "prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
+      "select ?o where { ?s rdfs:label \"{{location}}\"@en.\n" +
       "?s dbpedia-owl:thumbnail ?o }"
     ,
     (data) => {
