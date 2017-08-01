@@ -60,19 +60,9 @@ function buildURI(query) {
     return "https://dbpedia.org/sparql?query=" + encodeURIComponent(query) + "&format=json";
 }
 
+// args will be a map
 function buildQuery(base, args) {
-    return buildQueryR("", base, args);
-}
-
-function buildQueryR(res, [carBase, ...cdrBase], [carArgs, ...cdrArgs]) {
-    if (cdrBase.length > 0) {
-        return buildQueryR(
-            res.concat(carBase).concat(carArgs),
-            cdrBase,
-            cdrArgs);
-    } else {
-        return res.concat(carBase);
-    }
+    return fulfillTemplate(base, args);
 }
 
 // building functions
